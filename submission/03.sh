@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-# start the background daemon
-bitcoind -regtest -daemon
-echo "waiting 10 seconds for the daemon to start"
-sleep 10
+# loop until bitcoin-cli responds with a ping
+until bitcoin-cli -regtest getblockcount >/dev/null 2>&1; do  
+	sleep 1
+done
 # get the bitcoin node latest block height 
 bitcoin-cli -regtest getblockcount
