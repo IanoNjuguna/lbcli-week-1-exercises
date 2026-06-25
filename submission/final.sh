@@ -22,13 +22,13 @@ echo "----------------------------------------"
 echo "Create a wallet named 'btrustwallet' to track your Bitcoin exploration"
 # STUDENT TASK: Use bitcoin-cli to create a wallet named "btrustwallet"
 # WRITE YOUR SOLUTION BELOW:
-bitcoin-cli -regtest createwallet "btrustwallet"
+bitcoin-cli -regtest createwallet btrustwallet
 
 # Create a second wallet that will hold the treasure
 echo "Now, create another wallet called 'treasurewallet' to fund your adventure"
 # STUDENT TASK: Create another wallet called "treasurewallet"
 # WRITE YOUR SOLUTION BELOW:
-bitcoin-cli -regtest createwallet "treasurewallet"
+bitcoin-cli -regtest createwallet treasurewallet
 
 # Generate an address for mining in the treasure wallet
 # STUDENT TASK: Generate a new address in the treasurewallet
@@ -40,7 +40,7 @@ echo "Mining to address: $TREASURE_ADDR"
 # Mine some blocks to get initial coins
 mine_blocks 101 $TREASURE_ADDR
 
-# CHALLENGE PART 2: Check your starting balance 
+# CHALLENGE PART 2: Check your starting balance
 echo ""
 echo "CHALLENGE 2: Check your starting resources"
 echo "-----------------------------------------"
@@ -83,7 +83,7 @@ echo "The treasure hunt begins! Coins are being sent to your addresses..."
 
 # Send treasure to each address using our helper function with fee handling
 send_with_fee "treasurewallet" "$LEGACY_ADDR" 1.0 "First clue: Verify this transaction"
-send_with_fee "treasurewallet" "$P2SH_ADDR" 2.0 "Second clue: Needs validation" 
+send_with_fee "treasurewallet" "$P2SH_ADDR" 2.0 "Second clue: Needs validation"
 send_with_fee "treasurewallet" "$SEGWIT_ADDR" 3.0 "Third clue: Check descriptor"
 send_with_fee "treasurewallet" "$TAPROOT_ADDR" 4.0 "Final clue: Message verification"
 
@@ -175,14 +175,18 @@ check_cmd "Getting address info"
 
 # STUDENT TASK: Extract the internal key (the x-only pubkey) from the descriptor
 # WRITE YOUR SOLUTION BELOW:
+DESC=$(echo "$ADDR_INFO" | grep -o '"desc": "[^"]*"' | cut -d'"' -f4)
 INTERNAL_KEY=$(echo "$DESC" | sed 's/#.*//' | sed -n 's/.*]\([a-f0-9]*\).*/\1/p')
+if [[ -z "$INTERNAL_KEY" ]]; then
+  INTERNAL_KEY=$(echo "$DESC" | sed 's/#.*//' | sed -n 's/^tr(\([a-f0-9]*\)).*/\1/p')
+fi
 check_cmd "Extracting key from descriptor"
 INTERNAL_KEY=$(trim "$INTERNAL_KEY")
 
 # STUDENT TASK: Create a proper descriptor with just the key
 # WRITE YOUR SOLUTION BELOW:
 echo "Using internal key: $INTERNAL_KEY"
-SIMPLE_DESCRIPTOR="rawtr($INTERNAL_KEY)"
+SIMPLE_DESCRIPTOR="tr($INTERNAL_KEY)"
 echo "Simple descriptor: $SIMPLE_DESCRIPTOR"
 
 # STUDENT TASK: Get a proper descriptor with checksum
@@ -211,7 +215,7 @@ echo "Derived: $(echo -n "$DERIVED_ADDR" | base64)"
 
 if [[ "$NEW_TAPROOT_ADDR" == "$DERIVED_ADDR" ]]; then
   echo "Addresses match! The final treasure is yours!"
-  
+
   # For educational purposes, show both addresses from the challenge
   echo ""
   echo "Note: In Bitcoin Core v28, the original taproot address used in the challenge was:"
@@ -240,4 +244,4 @@ echo "- Validate addresses"
 echo "- Work with message signatures"
 echo "- Use Bitcoin descriptors"
 echo ""
-echo "NOTE: This script is specifically designed to work with Bitcoin Core v28." 
+echo "NOTE: This script is specifically designed to work with Bitcoin Core v28."
